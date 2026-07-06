@@ -9,8 +9,8 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 420, 0, 400)
-Frame.Position = UDim2.new(0.5, -210, 0.5, -200)
+Frame.Size = UDim2.new(0, 420, 0, 450)
+Frame.Position = UDim2.new(0.5, -210, 0.5, -225)
 Frame.BackgroundColor3 = Color3.fromRGB(20, 25, 45)
 Frame.BackgroundTransparency = 0.05
 Frame.BorderColor3 = Color3.fromRGB(200, 180, 100)
@@ -26,7 +26,7 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 50)
 Title.Position = UDim2.new(0, 0, 0, 10)
 Title.BackgroundTransparency = 1
-Title.Text = "🎯 Item Spawner · MM2 & Adopt Me"
+Title.Text = "🎯 Item Spawner · MM2"
 Title.TextColor3 = Color3.fromRGB(240, 210, 80)
 Title.TextSize = 22
 Title.Font = Enum.Font.GothamBold
@@ -101,7 +101,7 @@ TextBox.BackgroundColor3 = Color3.fromRGB(15, 20, 35)
 TextBox.BorderColor3 = Color3.fromRGB(200, 180, 100)
 TextBox.BorderSizePixel = 2
 TextBox.Text = ""
-TextBox.PlaceholderText = "e.g. Chroma Lightbringer"
+TextBox.PlaceholderText = "e.g. Logchopper"
 TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 TextBox.TextSize = 15
 TextBox.Font = Enum.Font.GothamMedium
@@ -112,6 +112,7 @@ local TextBoxCorner = Instance.new("UICorner")
 TextBoxCorner.CornerRadius = UDim.new(0, 12)
 TextBoxCorner.Parent = TextBox
 
+-- Claim Button
 local Button = Instance.new("TextButton")
 Button.Size = UDim2.new(0, 180, 0, 48)
 Button.Position = UDim2.new(0.5, -90, 0, 255)
@@ -127,20 +128,52 @@ local ButtonCorner = Instance.new("UICorner")
 ButtonCorner.CornerRadius = UDim.new(0, 14)
 ButtonCorner.Parent = Button
 
+local TimerLabel = Instance.new("TextLabel")
+TimerLabel.Size = UDim2.new(1, -40, 0, 30)
+TimerLabel.Position = UDim2.new(0, 20, 0, 315)
+TimerLabel.BackgroundTransparency = 1
+TimerLabel.Text = "⏳ Ready to claim!"
+TimerLabel.TextColor3 = Color3.fromRGB(180, 190, 220)
+TimerLabel.TextSize = 16
+TimerLabel.Font = Enum.Font.GothamBold
+TimerLabel.Parent = Frame
+
 local ResultLabel = Instance.new("TextLabel")
-ResultLabel.Size = UDim2.new(1, -40, 0, 60)
-ResultLabel.Position = UDim2.new(0, 20, 0, 315)
+ResultLabel.Size = UDim2.new(1, -40, 0, 30)
+ResultLabel.Position = UDim2.new(0, 20, 0, 355)
 ResultLabel.BackgroundTransparency = 1
 ResultLabel.Text = "✨ Select a category and enter an item!"
 ResultLabel.TextColor3 = Color3.fromRGB(180, 190, 220)
-ResultLabel.TextSize = 14
+ResultLabel.TextSize = 13
 ResultLabel.Font = Enum.Font.GothamMedium
 ResultLabel.TextWrapped = true
 ResultLabel.Parent = Frame
 
+local ProgressBarBg = Instance.new("Frame")
+ProgressBarBg.Size = UDim2.new(0, 280, 0, 8)
+ProgressBarBg.Position = UDim2.new(0.5, -140, 0, 395)
+ProgressBarBg.BackgroundColor3 = Color3.fromRGB(40, 45, 70)
+ProgressBarBg.BorderSizePixel = 0
+ProgressBarBg.Parent = Frame
+
+local ProgressBarCorner = Instance.new("UICorner")
+ProgressBarCorner.CornerRadius = UDim.new(0, 4)
+ProgressBarCorner.Parent = ProgressBarBg
+
+local ProgressBar = Instance.new("Frame")
+ProgressBar.Size = UDim2.new(0, 0, 1, 0)
+ProgressBar.BackgroundColor3 = Color3.fromRGB(240, 210, 80)
+ProgressBar.BorderSizePixel = 0
+ProgressBar.Parent = ProgressBarBg
+
+local ProgressBarCorner2 = Instance.new("UICorner")
+ProgressBarCorner2.CornerRadius = UDim.new(0, 4)
+ProgressBarCorner2.Parent = ProgressBar
+
 local currentCategory = "🔪 Knives"
 local selectedCategoryIndex = 1
-local claimedItems = {} 
+local claimedItems = {}
+local isProcessing = false
 
 local categoryItems = {
     ["🔪 Knives"] = {
@@ -162,6 +195,55 @@ local categoryItems = {
         "Diamond Pet", "Golden Pet", "Albino", "Mega Pet", "Neon Pet"
     }
 }
+
+local function startTimer(duration, callback)
+    isProcessing = true
+    Button.Visible = false
+    local startTime = tick()
+    local elapsed = 0
+    
+    TimerLabel.Text = "⏳ Processing... " .. duration .. "s"
+    TimerLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+    
+    TextBox.Visible = false
+    
+    while elapsed < duration do
+        elapsed = tick() - startTime
+        local remaining = math.floor(duration - elapsed)
+        TimerLabel.Text = "⏳ Processing... " .. remaining .. "s"
+        
+        local progress = elapsed / duration
+        ProgressBar.Size = UDim2.new(progress, 0, 1, 0)
+        
+        if progress < 0.5 then
+            ProgressBar.BackgroundColor3 = Color3.fromRGB(240, 210, 80)
+        elseif progress < 0.8 then
+            ProgressBar.BackgroundColor3 = Color3.fromRGB(255, 180, 50)
+        else
+            ProgressBar.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+        end
+        
+        task.wait(0.1)
+    end
+    
+    ProgressBar.Size = UDim2.new(1, 0, 1, 0)
+    TimerLabel.Text = "✅ Ready!"
+    TimerLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    
+    task.wait(0.5)
+    
+    if callback then
+        callback()
+    end
+    
+    isProcessing = false
+    Button.Visible = true
+    TextBox.Visible = true
+    ProgressBar.Size = UDim2.new(0, 0, 1, 0)
+    TimerLabel.Text = "⏳ Ready to claim!"
+    TimerLabel.TextColor3 = Color3.fromRGB(180, 190, 220)
+    ProgressBar.BackgroundColor3 = Color3.fromRGB(240, 210, 80)
+end
 
 local function createVisualItem(itemName, category)
     local itemFrame = Instance.new("Frame")
@@ -196,7 +278,6 @@ local function createVisualItem(itemName, category)
     end
     iconLabel.Parent = itemFrame
     
-    -- Item name
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Size = UDim2.new(1, 0, 0.4, 0)
     nameLabel.Position = UDim2.new(0, 0, 0.6, 0)
@@ -233,7 +314,7 @@ local function createVisualItem(itemName, category)
     
     table.insert(claimedItems, {name = itemName, frame = itemFrame, container = hotbarContainer})
     
-    ResultLabel.Text = "📦 Added " .. itemName .. " to visual inventory!"
+    ResultLabel.Text = "📦 Added " .. itemName .. " to inventory!"
     ResultLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
 end
 
@@ -255,9 +336,9 @@ local function updateCategory(category, index)
     end
     
     local examples = {
-        ["🔪 Knives"] = "e.g. Chroma Lightbringer",
-        ["🔫 Guns"] = "e.g. Chroma Laser",
-        ["🐾 Pets"] = "e.g. Shadow Dragon"
+        ["🔪 Knives"] = "e.g. Logchopper",
+        ["🔫 Guns"] = "e.g. Red Luger",
+        ["🐾 Pets"] = "e.g. Fire Pig"
     }
     TextBox.PlaceholderText = examples[category] or "Enter item name..."
 end
@@ -284,13 +365,17 @@ for i, btn in ipairs(categoryButtons) do
 end
 
 Button.MouseEnter:Connect(function()
-    Button.BackgroundColor3 = Color3.fromRGB(245, 210, 80)
-    Button.Text = "⚡ CLAIM ITEM"
+    if not isProcessing then
+        Button.BackgroundColor3 = Color3.fromRGB(245, 210, 80)
+        Button.Text = "⚡ CLAIM ITEM"
+    end
 end)
 
 Button.MouseLeave:Connect(function()
-    Button.BackgroundColor3 = Color3.fromRGB(220, 180, 50)
-    Button.Text = "🪄 CLAIM ITEM"
+    if not isProcessing then
+        Button.BackgroundColor3 = Color3.fromRGB(220, 180, 50)
+        Button.Text = "🪄 CLAIM ITEM"
+    end
 end)
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -305,6 +390,12 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 Button.MouseButton1Click:Connect(function()
+    if isProcessing then
+        ResultLabel.Text = "⏳ Please wait for current claim to finish!"
+        ResultLabel.TextColor3 = Color3.fromRGB(255, 180, 100)
+        return
+    end
+    
     local itemName = TextBox.Text
     if itemName == "" or itemName == " " then
         ResultLabel.Text = "⚠️ Please enter an item name!"
@@ -321,38 +412,44 @@ Button.MouseButton1Click:Connect(function()
         end
     end
     
-    local successMessages = {
-        "✅ " .. itemName .. " added to your inventory!",
-        "🎉 You received " .. itemName .. "!",
-        "📦 " .. itemName .. " has been claimed!",
-        "✨ " .. itemName .. " is now in your visual inventory!",
-        "💎 Congratulations! You got " .. itemName .. "!",
-        "🛍️ " .. itemName .. " added to inventory.",
-        "🌟 " .. itemName .. " has been delivered!",
-        "🎁 You unlocked " .. itemName .. "!"
-    }
+    local timerDuration = math.random(60, 70)
+    ResultLabel.Text = "⏳ Claiming " .. itemName .. "..."
+    ResultLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
     
-    local randomIndex = math.random(1, #successMessages)
-    local msg = successMessages[randomIndex]
-    
-    if not itemFound then
-        msg = "🎲 " .. itemName .. " added to inventory! (Rare find!)"
-    end
-    
-    ResultLabel.Text = msg
-    ResultLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
-    
-    createVisualItem(itemName, currentCategory)
-    
-    Button.BackgroundColor3 = Color3.fromRGB(80, 220, 100)
-    task.wait(0.4)
-    Button.BackgroundColor3 = Color3.fromRGB(220, 180, 50)
-    
-    task.wait(2)
-    TextBox.Text = ""
-    ResultLabel.Text = "✨ ready for next item..."
-    ResultLabel.TextColor3 = Color3.fromRGB(180, 190, 220)
-    Button.Text = "🪄 CLAIM ITEM"
+    startTimer(timerDuration, function()
+        local successMessages = {
+            "✅ " .. itemName .. " added to your inventory!",
+            "🎉 You received " .. itemName .. "!",
+            "📦 " .. itemName .. " has been claimed!",
+            "✨ " .. itemName .. " is now in your inventory!",
+            "💎 Congratulations! You got " .. itemName .. "!",
+            "🛍️ " .. itemName .. " added to inventory.",
+            "🌟 " .. itemName .. " has been delivered!",
+            "🎁 You unlocked " .. itemName .. "!"
+        }
+        
+        local randomIndex = math.random(1, #successMessages)
+        local msg = successMessages[randomIndex]
+        
+        if not itemFound then
+            msg = "🎲 " .. itemName .. " added to inventory! (Rare find!)"
+        end
+        
+        ResultLabel.Text = msg
+        ResultLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+        
+        createVisualItem(itemName, currentCategory)
+        
+        Button.BackgroundColor3 = Color3.fromRGB(80, 220, 100)
+        task.wait(0.4)
+        Button.BackgroundColor3 = Color3.fromRGB(220, 180, 50)
+        
+        task.wait(1.5)
+        TextBox.Text = ""
+        ResultLabel.Text = "✨ ready for next item..."
+        ResultLabel.TextColor3 = Color3.fromRGB(180, 190, 220)
+        Button.Text = "🪄 CLAIM ITEM"
+    end)
 end)
 
 TextBox.Focused:Connect(function()
@@ -364,6 +461,7 @@ TextBox.FocusLost:Connect(function()
 end)
 
 updateCategory("🔪 Knives", 1)
+
 
 game:GetService("Players").LocalPlayer:GetPropertyChangedSignal("Parent"):Connect(function()
     if not Player.Parent then
